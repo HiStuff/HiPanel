@@ -1,10 +1,14 @@
 import express, { Request, Response, NextFunction } from "express";
 import config from "../../config.json" assert { type: "json" };
 
-const router = express.Router();
+export const router = express.Router();
 
 export function checkAuth(req: Request, res: Response, next: NextFunction) {
-    next();
+    if (false) {
+        next()
+    } else {
+        res.redirect("/authorize");
+    }
 }
 
 router.get("/authorize", (req: Request, res: Response) => {
