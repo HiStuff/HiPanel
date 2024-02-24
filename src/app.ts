@@ -16,7 +16,7 @@ app.set("views", path.join(__dirname, "/render"));
 app.use(router);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    log.error(err.stack);
+    log.error(err.stack, "Error Handler");
     res.status(500).send('An error occured while trying to handle your request.');
   })
 
