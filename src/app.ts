@@ -4,12 +4,16 @@ import "dotenv/config";
 import { checkAuth, router } from "./managers/auth.js";
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PrismaClient } from '@prisma/client';
+
+export const prisma = new PrismaClient()
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import config from "../config.json" assert { type: "json" };
 
 const app = express();
+app.use("/assets", express.static(path.join(__dirname + "/render/assets")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/render"));
 
@@ -21,7 +25,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   })
 
 app.get("/", checkAuth, (req, res) => {
-    
+    res.render("dashboard", { "panel_title": config.panel_title, "token": "" });
 })
 
 app.listen(config.port, () => {

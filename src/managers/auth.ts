@@ -3,30 +3,48 @@ import bodyparser from "body-parser";
 import jwt from "jsonwebtoken";
 import config from "../../config.json" assert { type: "json" };
 import "dotenv/config";
-
-if (!process.env.SESSION_SECRET) {
-    throw new Error("No SESSION_SECRET enviroment variable.");
-}
+import cookieParser from "cookie-parser";
+import * as log from "../utils/logger.js";
+import { prisma } from "../app.js";
+import bcrypt from "bcrypt";
 
 export const router = express.Router();
 router.use(bodyparser.urlencoded({ extended: true }));
+router.use(cookieParser());
 
-function generateJWT(username: string): string {
-    if (!process.env.JWT_SECRET) {
-        throw new Error("No JWT_SECRET enviroment variable.");
-    }
-    return jwt.sign({ data: {
-        username: username,
-        permissionLevel: 1
-    } }, process.env.JWT_SECRET, { expiresIn: "1h" });
+const saltRounds = 10;
+
+function generateJWT(email: string, username: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        if (!process.env.JWT_SECRET) {
+            throw new Error("No JWT_SECRET enviroment variable.");
+        }
+        jwt.sign({ data: {
+            email: email,
+            username: username,
+            permissionLevel: 1
+        } }, process.env.JWT_SECRET, { expiresIn: "7d" }, ((err, token) => {
+            if (err || !token) {
+                throw err;
+            }
+            resolve(token)
+        }));
+    })
 }
 
 export function checkAuth(req: Request, res: Response, next: NextFunction) {
-    if (false) {
-        next()
-    } else {
-        res.redirect("/authorize");
+    if (!process.env.JWT_SECRET) {
+        throw new Error("No JWT_SECRET enviroment variable.");
     }
+    const token = req.cookies.token;
+    if (!token) { res.redirect("/authorize"); return; }
+    jwt.verify(token, process.env.JWT_SECRET, ((err: any, decoded: any) => {
+        if (err) {
+            res.redirect("/authorize");
+            return;
+        }
+        next();
+    }));
 }
 
 // RENDER
@@ -49,16 +67,55 @@ router.get("/auth/discord", (req: Request, res: Response) => {
 
 // POST
 
-router.post("/auth/jwt_login", (req: Request, res: Response) => {
-    console.log(req.headers.authorization);
+router.post("/auth/jwt_login", async (req: Request, res: Response) => {
     const username: string = req.body.username;
     const password: string = req.body.password;
-    const token = generateJWT(username);
-    res.render("dashboard", { "panel_title": config.panel_title, token: token });
+    const user = await prisma.user.findUnique({
+        where: {
+            username: username
+        }
+    });
+    if (!user) {
+        return res.send("User doesn't exist.");
+    }
+    bcrypt.compare(password, user.hashedPassword, async (err, result) => {
+        if (err) {
+            throw err;
+        }
+        if (result) {
+            const token = await generateJWT(user.email, user.username);
+            res.render("dashboard", { "panel_title": config.panel_title, token: token });
+        }
+    });
 });
 
 router.post("/auth/jwt_register", (req: Request, res: Response) => {
-    //
+    const email: string = req.body.email;
+    const username: string = req.body.username;
+    const password: string = req.body.password;
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
+        if (err) {
+            throw err;
+        }
+        const user = await prisma.user.findUnique({
+            where: {
+                username: username
+            }
+        });
+        if (!user) {
+            await prisma.user.create({
+                data: {
+                    email: email,
+                    username: username,
+                    hashedPassword: hash
+                }
+            });
+            const token = await generateJWT(email, username);
+            res.render("dashboard", { "panel_title": config.panel_title, token: token });
+        } else {
+            return res.send("User already exists.");
+        }
+    });
 });
 
 router.post("/auth/discord", (req: Request, res: Response) => {
