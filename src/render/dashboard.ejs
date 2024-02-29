@@ -2,15 +2,34 @@
 <html lang="en">
 <%- include("header") %>
 <body class="bg-[#1a1c1f]">
-    <p>Check console</p>
+    <aside class="fixed top-0 left-0 bottom-0 w-64 bg-[#151617] p-3">
+        <div class="text-center mb-3">
+            <h1 class="p-2 text-2xl">HiPanel</h1>
+        </div>
+        <button class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium">
+            <span class="material-symbols-outlined align-middle mr-1">check_circle</span>
+            <span class="align-middle">Updater</span>
+        </button>
+        <div class="fixed bottom-0 w-64 p-3 pl-0 pr-6">
+            <p class="p-2">Logged in as example.</p>
+            <button onclick="logout()" class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium ">
+                <span class="material-symbols-outlined align-middle mr-1">logout</span>
+                <span class="align-middle">Logout</span>
+            </button>
+        </div>
+    </aside>
 </body>
 <script>
     let token = "<%= token %>";
     if (token) {
-        setCookie("token", token, 7)
+        setCookie("token", token, 7);
+        document.location = "/";
     } else {
         token = getCookie("token");
     }
-    console.log(token);
+    function logout() {
+        setCookie("token", null, 0);
+        document.location = "/";
+    }
 </script>
 </html>
