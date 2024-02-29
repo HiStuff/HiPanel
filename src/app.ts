@@ -1,7 +1,8 @@
 import express, { NextFunction, Request, Response } from "express";
 import * as log from "./utils/logger.js";
 import "dotenv/config";
-import { checkAuth, router } from "./managers/auth.js";
+import { checkAuth, authRouter } from "./managers/auth.js";
+import { userRouter } from "./managers/user.js";
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '@prisma/client';
@@ -17,7 +18,8 @@ app.use("/assets", express.static(path.join(__dirname + "/render/assets")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/render"));
 
-app.use(router);
+app.use(authRouter);
+app.use(userRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     log.error(err.stack, "Error Handler");

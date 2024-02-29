@@ -5,11 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 model User {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
-  email          String   @unique
-  username       String   @unique
-  hashedPassword String
+  id              Int      @id @default(autoincrement())
+  createdAt       DateTime @default(now())
+  email           String   @unique
+  username        String   @unique
+  permissionLevel Int      @default(1)
+  hashedPassword  String
 }
 
 generator client {

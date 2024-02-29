@@ -8,18 +8,19 @@ import * as log from "../utils/logger.js";
 import { prisma } from "../app.js";
 import bcrypt from "bcrypt";
 
-export const router = express.Router();
-router.use(bodyparser.urlencoded({ extended: true }));
-router.use(cookieParser());
+export const authRouter = express.Router();
+authRouter.use(bodyparser.urlencoded({ extended: true }));
+authRouter.use(cookieParser());
 
 const saltRounds = 10;
 
-function generateJWT(email: string, username: string): Promise<string> {
+function generateJWT(id: number, email: string, username: string): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!process.env.JWT_SECRET) {
             throw new Error("No JWT_SECRET enviroment variable.");
         }
         jwt.sign({ data: {
+            id: id,
             email: email,
             username: username,
             permissionLevel: 1
@@ -49,25 +50,25 @@ export function checkAuth(req: Request, res: Response, next: NextFunction) {
 
 // RENDER
 
-router.get("/authorize", (req: Request, res: Response) => {
+authRouter.get("/authorize", (req: Request, res: Response) => {
     res.render("authorize", { "panel_title": config.panel_title });
 });
 
-router.get("/auth/jwt_login", (req: Request, res: Response) => {
+authRouter.get("/auth/jwt_login", (req: Request, res: Response) => {
     res.render("jwt_login", { "panel_title": config.panel_title });
 });
 
-router.get("/auth/jwt_register", (req: Request, res: Response) => {
+authRouter.get("/auth/jwt_register", (req: Request, res: Response) => {
     res.render("jwt_register", { "panel_title": config.panel_title });
 });
 
-router.get("/auth/discord", (req: Request, res: Response) => {
+authRouter.get("/auth/discord", (req: Request, res: Response) => {
     res.status(501).send("Not implemented.");
 });
 
 // POST
 
-router.post("/auth/jwt_login", async (req: Request, res: Response) => {
+authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
     const username: string = req.body.username;
     const password: string = req.body.password;
     const user = await prisma.user.findUnique({
@@ -83,13 +84,15 @@ router.post("/auth/jwt_login", async (req: Request, res: Response) => {
             throw err;
         }
         if (result) {
-            const token = await generateJWT(user.email, user.username);
+            const token = await generateJWT(user.id, user.email, user.username);
             res.render("dashboard", { "panel_title": config.panel_title, token: token });
+        } else {
+            res.send("Wrong password.");
         }
     });
 });
 
-router.post("/auth/jwt_register", (req: Request, res: Response) => {
+authRouter.post("/auth/jwt_register", (req: Request, res: Response) => {
     const email: string = req.body.email;
     const username: string = req.body.username;
     const password: string = req.body.password;
@@ -103,14 +106,14 @@ router.post("/auth/jwt_register", (req: Request, res: Response) => {
             }
         });
         if (!user) {
-            await prisma.user.create({
+            const user = await prisma.user.create({
                 data: {
                     email: email,
                     username: username,
                     hashedPassword: hash
                 }
             });
-            const token = await generateJWT(email, username);
+            const token = await generateJWT(user.id, email, username);
             res.render("dashboard", { "panel_title": config.panel_title, token: token });
         } else {
             return res.send("User already exists.");
@@ -118,6 +121,6 @@ router.post("/auth/jwt_register", (req: Request, res: Response) => {
     });
 });
 
-router.post("/auth/discord", (req: Request, res: Response) => {
+authRouter.post("/auth/discord", (req: Request, res: Response) => {
     res.status(501).send("Not implemented.");
 });
