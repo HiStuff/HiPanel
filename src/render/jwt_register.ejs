@@ -5,6 +5,7 @@
     <div class="flex justify-center mt-[5%]">
         <div class="bg-[#151617] p-5 pt-6 rounded-2xl w-[15%] text-center">
             <p class="text-2xl mb-6 m-auto">Register</p>
+            <%- additional_el %>
             <form action="/auth/jwt_register" method="POST">
                 <label for="email" class="block text-left mb-1">E-Mail</label>
                 <input required name="email" id="email" class="block p-1 bg-[#26282b] mb-3 w-full rounded-md outline-none text-[#abaeb3] placeholder:text-[#616366]" placeholder="teletvbis@gmail.com">

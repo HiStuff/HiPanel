@@ -55,11 +55,11 @@ authRouter.get("/authorize", (req: Request, res: Response) => {
 });
 
 authRouter.get("/auth/jwt_login", (req: Request, res: Response) => {
-    res.render("jwt_login", { "panel_title": config.panel_title });
+    res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": "" });
 });
 
 authRouter.get("/auth/jwt_register", (req: Request, res: Response) => {
-    res.render("jwt_register", { "panel_title": config.panel_title });
+    res.render("jwt_register", { "panel_title": config.panel_title, "additional_el": "" });
 });
 
 authRouter.get("/auth/discord", (req: Request, res: Response) => {
@@ -77,7 +77,7 @@ authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
         }
     });
     if (!user) {
-        return res.send("User doesn't exist.");
+        return res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
     }
     bcrypt.compare(password, user.hashedPassword, async (err, result) => {
         if (err) {
@@ -87,7 +87,7 @@ authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
             const token = await generateJWT(user.id, user.email, user.username);
             res.render("dashboard", { "panel_title": config.panel_title, token: token });
         } else {
-            res.send("Wrong password.");
+            return res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
         }
     });
 });
@@ -116,7 +116,7 @@ authRouter.post("/auth/jwt_register", (req: Request, res: Response) => {
             const token = await generateJWT(user.id, email, username);
             res.render("dashboard", { "panel_title": config.panel_title, token: token });
         } else {
-            return res.send("User already exists.");
+            return res.render("jwt_register", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>User already exists.<p></div>' });
         }
     });
 });
