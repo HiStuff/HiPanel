@@ -7,7 +7,7 @@
         <div class="text-center mb-3">
             <h1 class="p-2 text-2xl">HiPanel</h1>
         </div>
-        <button class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium" onclick="goAnotherTab('welcome')">
+        <button class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium" onclick="switchTab('welcome')">
             <span class="material-symbols-outlined align-middle mr-1">handshake</span>
             <span class="align-middle">Welcome</span>
         </button>
@@ -34,7 +34,7 @@
         document.location = "/";
     }
     const container = document.querySelector("#container");
-    async function goAnotherTab(tName) {
+    async function switchTab(tName) {
         const loc = new URL(`/tab/${tName}`, document.location.origin);
         await getTabContent(loc);
     }
@@ -51,5 +51,8 @@
             console.log(err);
         }
     }
+
+    // DEFAULT TAB
+    await switchTab("welcome");
 </script>
 </html>
