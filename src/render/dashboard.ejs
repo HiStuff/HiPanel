@@ -2,13 +2,14 @@
 <html lang="en">
 <%- include("header") %>
 <body class="bg-[#1a1c1f]">
+    <nav class="fixed top-0 left-0 right-0 h-16 bg-[#151617]"></nav>
     <aside class="fixed top-0 left-0 bottom-0 w-64 bg-[#151617] p-3">
         <div class="text-center mb-3">
             <h1 class="p-2 text-2xl">HiPanel</h1>
         </div>
-        <button class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium">
-            <span class="material-symbols-outlined align-middle mr-1">check_circle</span>
-            <span class="align-middle">Updater</span>
+        <button class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium" onclick="goAnotherTab('welcome')">
+            <span class="material-symbols-outlined align-middle mr-1">handshake</span>
+            <span class="align-middle">Welcome</span>
         </button>
         <div class="fixed bottom-0 w-64 p-3 pl-0 pr-6">
             <p class="p-2">Logged in as example.</p>
@@ -18,6 +19,7 @@
             </button>
         </div>
     </aside>
+    <div id="container" class="ml-72 mt-24"></div>
 </body>
 <script>
     let token = "<%= token %>";
@@ -30,6 +32,24 @@
     function logout() {
         setCookie("token", null, 0);
         document.location = "/";
+    }
+    const container = document.querySelector("#container");
+    async function goAnotherTab(tName) {
+        const loc = new URL(`/tab/${tName}`, document.location.origin);
+        await getTabContent(loc);
+    }
+    async function getTabContent(url) {
+        try {
+            const content = await fetch(url);
+            container.innerHTML = await content.text();
+            const tabScript = await container.querySelector("script");
+            await tabScript.remove();
+            console.log(`[#] Evaling script from URL ${url}...`);
+            await eval(tabScript.innerHTML);
+            console.log(`[#] Done evaling script from URL ${url}!`);
+        } catch (err) {
+            console.log(err);
+        }
     }
 </script>
 </html>

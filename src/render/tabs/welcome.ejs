@@ -1,0 +1,18 @@
+<h1 class="text-3xl">Welcome back!</h1>
+<p class="mt-1">You're logged in as <span id="username">...</span>!</p>
+<p>Your e-mail is <span id="email">...</span>.</p>
+<p>Your account was created on <span id="createdAt">...</span>.</p>
+<script>
+    const username = document.querySelector("#username");
+    const email = document.querySelector("#email");
+    const createdAt = document.querySelector("#createdAt");
+    fetch("/api/user/me", {
+        headers: {
+            "Authorization": getCookie("token")
+        }
+    }).then((res) => res.json()).then(data => {
+        username.textContent = data.username;
+        email.textContent = data.email;
+        createdAt.textContent = new Date(data.createdAt).toLocaleString();
+    });
+</script>
