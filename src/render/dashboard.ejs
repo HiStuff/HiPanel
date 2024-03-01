@@ -2,7 +2,21 @@
 <html lang="en">
 <%- include("header") %>
 <body class="bg-[#1a1c1f]">
-    <nav class="fixed top-0 left-0 right-0 h-16 bg-[#151617]"></nav>
+    <nav class="fixed top-0 left-0 right-0 h-16 bg-[#151617]">
+        <div class="flex m-2 items-center justify-end">
+            <div>
+                <button id="dropdown-open-btn">
+                    <img id="user-avatar" src="" loading="lazy" class="w-12 h-12 rounded-full flex justify-center">
+                </button>
+                <div class="bg-[#151617] p-2 absolute z-1 rounded-xl mt-2 right-2 w-48" id="dropdown" hidden>
+                    <button onclick="logout()" class="block p-2 hover:bg-[#ff0000] w-full rounded-md pt-1 text-left font-medium ">
+                        <span class="material-symbols-outlined align-middle mr-1">logout</span>
+                        <span class="align-middle ">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
     <aside class="fixed top-0 left-0 bottom-0 w-64 bg-[#151617] p-3">
         <div class="text-center mb-3">
             <h1 class="p-2 text-2xl">HiPanel</h1>
@@ -21,6 +35,28 @@
     <div id="container" class="ml-72 mt-24"></div>
 </body>
 <script>
+
+    // dropdown
+    const dropdown = document.querySelector("#dropdown");
+    const dropdown_open = document.querySelector("#dropdown-open-btn");
+    let state = false;
+    dropdown_open.addEventListener("click", (e => {
+        state = !state;
+        dropdown.hidden = !state;
+    }));
+
+    // user avatar
+    const user_avatar = document.querySelector("#user-avatar");
+    fetch("/api/user/me", {
+        headers: {
+            "Authorization": getCookie("token")
+        }
+    }).then((res) => res.json()).then(async data => {
+        const address = data.email.trim().toLowerCase();
+        const hash = await sha256(address);
+        user_avatar.setAttribute("src", `https://www.gravatar.com/avatar/${ hash }`);
+    });
+
     let token = "<%= token %>";
     if (token) {
         setCookie("token", token, 7);
@@ -52,6 +88,6 @@
     }
 
     // DEFAULT TAB
-    await switchTab("welcome");
+    switchTab("welcome");
 </script>
 </html>
