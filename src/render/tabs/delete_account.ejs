@@ -1,0 +1,21 @@
+<h1 class="text-3xl">Account deletion confirmation</h1>
+<p class="mt-1 mb-2">Enter "I am sure." to delete account.</p>
+<form id="confirm_form" class="w-96">
+    <input id="confirm_input" placeholder="I am sure." class="block p-1 bg-[#26282b] mb-2 w-full rounded-md outline-none text-[#abaeb3] placeholder:text-[#616366]">
+    <button class="block p-1 bg-[#FF0000] w-full rounded-md" type="submit">Confirm</button>
+</form>
+<script>
+    document.querySelector("#confirm_form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (document.querySelector("#confirm_input").value == "I am sure.") {
+            fetch("/api/user/me", {
+                method: "DELETE",
+                headers: {
+                    "Authorization": getCookie("token")
+                }
+            }).then((res) => res.json()).then(async data => {
+                logout();
+            });
+        }
+    });
+</script>

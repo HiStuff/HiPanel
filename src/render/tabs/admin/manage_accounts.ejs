@@ -1,0 +1,32 @@
+<table class="auto">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>E-Mail</th>
+            <th>Username</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody class="table">
+        <tr>
+            <td>1</td>
+            <td>test@histuff.dev</td>
+            <td>test</td>
+            <td><button>delete</button></td>
+        </tr>
+    </tbody>
+</table>
+<script>
+    const table = document.querySelector("#table");
+    function createTableRow(id, email, username, created_on) {
+        const tr = document.createElement("tr");
+        const id_el = document.createElement("td");
+        const email_el = document.createElement("td"); 
+        const username_el = document.createElement("td"); 
+        const created_on_el = document.createElement("td"); 
+        id_el.textContent = id;
+        email_el.textContent = email;
+        username_el.textContent = username;
+        created_on_el.textContent = created_on;
+    }
+</script>

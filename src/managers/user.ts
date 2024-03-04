@@ -1,21 +1,30 @@
 import express, { Request, Response, NextFunction } from "express";
 import bodyparser from "body-parser";
 import jwt from "jsonwebtoken";
-import config from "../../config.json" assert { type: "json" };
+import * as log from "../utils/logger.js";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
 import { prisma } from "../app.js";
-import bcrypt from "bcrypt";
 
 export const userRouter = express.Router();
 userRouter.use(bodyparser.json());
 userRouter.use(cookieParser());
 
-const saltRounds = 10;
-
 export async function getUserInfo(id: number): Promise<any> {
     return new Promise((resolve, reject) => {
         prisma.user.findUnique({
+            where: {
+                id: id
+            }
+        }).then((user) => {
+            resolve(user);
+        }).catch(err => reject(err));
+    })
+}
+
+export async function deleteUser(id: number): Promise<any> {
+    return new Promise((resolve, reject) => {
+        prisma.user.delete({
             where: {
                 id: id
             }
@@ -43,21 +52,45 @@ export async function getTokenData(token: string): Promise<any> {
 
 userRouter.get("/api/user/:id", async (req: Request, res: Response) => {
     let id = req.params.id;
-    if (req.params.id != "me") {
-        id = req.params.id;
-    }
     const token = req.headers.authorization;
     if (!token) return res.status(401);
+    const tokenData = await getTokenData(token);
     let userInfo;
-    if (id != "me") {
-        if ((await getTokenData(token)).permissionLevel < 2) return res.status(403).json({ message: "Permission Level too low." });
+    if (id == "me") {
+        // ME
+        id = tokenData.id
         userInfo = await getUserInfo(Number(id));
     } else {
-        id = (await getTokenData(token)).id
+        // OTHER
+        if (tokenData.permissionLevel < 2) return res.status(403).json({ message: "Permission Level too low." });
         userInfo = await getUserInfo(Number(id));
     };
     if (!userInfo) {
         return res.status(404).json({ message: "User doesn't exist." });
     }
+    res.json(userInfo);
+});
+
+// DELETE
+
+userRouter.delete("/api/user/:id", async (req: Request, res: Response) => {
+    let id = req.params.id;
+    const token = req.headers.authorization;
+    if (!token) return res.status(401);
+    const tokenData = await getTokenData(token);
+    let userInfo;
+    if (id == "me") {
+        // ME
+        id = tokenData.id
+        userInfo = await deleteUser(Number(id));
+    } else {
+        // OTHER
+        if (tokenData.permissionLevel < 2) return res.status(403).json({ message: "Permission Level too low." });
+        userInfo = await deleteUser(Number(id));
+    };
+    if (!userInfo) {
+        return res.status(404).json({ message: "User doesn't exist." });
+    }
+    log.success(`User with ID ${id} got deleted!`);
     res.json(userInfo);
 });

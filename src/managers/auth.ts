@@ -48,6 +48,22 @@ export function checkAuth(req: Request, res: Response, next: NextFunction) {
     }));
 }
 
+export function checkAdminAuth(req: Request, res: Response, next: NextFunction) {
+    if (!process.env.JWT_SECRET) {
+        throw new Error("No JWT_SECRET enviroment variable.");
+    }
+    const token = req.cookies.token;
+    if (!token) { res.redirect("/authorize"); return; }
+    jwt.verify(token, process.env.JWT_SECRET, ((err: any, decoded: any) => {
+        if (err || decoded.permissionLevel < 2) {
+            res.redirect("/");
+            return;
+        }
+        next();
+    }));
+}
+
+
 // RENDER
 
 authRouter.get("/authorize", (req: Request, res: Response) => {
@@ -85,7 +101,7 @@ authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
         }
         if (result) {
             const token = await generateJWT(user.id, user.email, user.username);
-            res.render("dashboard", { "panel_title": config.panel_title, token: token });
+            res.render("dashboard", { "panel_title": config.panel_title, token: token, other: {} });
         } else {
             return res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
         }
@@ -114,7 +130,8 @@ authRouter.post("/auth/jwt_register", (req: Request, res: Response) => {
                 }
             });
             const token = await generateJWT(user.id, email, username);
-            res.render("dashboard", { "panel_title": config.panel_title, token: token });
+            res.render("dashboard", { "panel_title": config.panel_title, token: token, other: {} });
+            log.success(`User with ID ${user.id} got registered!`);
         } else {
             return res.render("jwt_register", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>User already exists.<p></div>' });
         }

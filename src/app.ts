@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import * as log from "./utils/logger.js";
 import "dotenv/config";
-import { checkAuth, authRouter } from "./managers/auth.js";
+import { checkAuth, checkAdminAuth, authRouter } from "./managers/auth.js";
 import { userRouter } from "./managers/user.js";
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,15 +28,28 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.get("/", checkAuth, (req, res) => {
-    res.render("dashboard", { "panel_title": config.panel_title, "token": "" });
-})
+    res.render("dashboard", { "panel_title": config.panel_title, "token": "", other: {} });
+});
 
 app.get("/tab/:tab", checkAuth, (req, res) => {
     const { tab } = req.params;
     if (tab && fs.existsSync(path.join(__dirname, `/render/tabs/${tab}.ejs`))) {
         res.render(`tabs/${tab.toString()}`);
     } else {
-        res.render("dashboard", { "panel_title": config.panel_title, "token": "" });
+        res.render("dashboard", { "panel_title": config.panel_title, "token": "", other: {} });
+    }
+});
+
+app.get("/admin", checkAdminAuth, (req, res) => {
+    res.render("dashboard", { "panel_title": config.panel_title, "token": "", other: { admin: "true" } });
+});
+
+app.get("/tab/admin/:tab", checkAdminAuth, (req, res) => {
+    const { tab } = req.params;
+    if (tab && fs.existsSync(path.join(__dirname, `/render/tabs/admin/${tab}.ejs`))) {
+        res.render(`tabs/admin/${tab.toString()}`);
+    } else {
+        res.render("dashboard", { "panel_title": config.panel_title, "token": "", other: {} });
     }
 });
 
