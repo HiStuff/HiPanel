@@ -34,35 +34,21 @@ export async function deleteUser(id: number): Promise<any> {
     })
 }
 
-export async function getTokenData(token: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-        if (!process.env.JWT_SECRET) {
-            throw new Error("No JWT_SECRET enviroment variable.");
-        }
-        jwt.verify(token, process.env.JWT_SECRET, async (err: any, decoded: any) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(decoded.data);
-        });
-    });
-}
-
 // GET
 
 userRouter.get("/api/user/:id", async (req: Request, res: Response) => {
     let id = req.params.id;
-    const token = req.headers.authorization;
-    if (!token) return res.status(401);
-    const tokenData = await getTokenData(token);
+    const user = req.session.user;
+    if (!user) return res.status(401);
     let userInfo;
     if (id == "me") {
         // ME
-        id = tokenData.id
-        userInfo = await getUserInfo(Number(id));
+        // id = user.id
+        // userInfo = await getUserInfo(Number(id));
+        userInfo = user;
     } else {
         // OTHER
-        if (tokenData.permissionLevel < 2) return res.status(403).json({ message: "Permission Level too low." });
+        if (!user.admin) return res.status(403);
         userInfo = await getUserInfo(Number(id));
     };
     if (!userInfo) {
@@ -75,17 +61,16 @@ userRouter.get("/api/user/:id", async (req: Request, res: Response) => {
 
 userRouter.delete("/api/user/:id", async (req: Request, res: Response) => {
     let id = req.params.id;
-    const token = req.headers.authorization;
-    if (!token) return res.status(401);
-    const tokenData = await getTokenData(token);
+    const user = req.session.user;
+    if (!user) return res.status(401);
     let userInfo;
     if (id == "me") {
         // ME
-        id = tokenData.id
+        id = user.id.toString();
         userInfo = await deleteUser(Number(id));
     } else {
         // OTHER
-        if (tokenData.permissionLevel < 2) return res.status(403).json({ message: "Permission Level too low." });
+        if (!user.admin) return res.status(403).json({ message: "Permission Level too low." });
         userInfo = await deleteUser(Number(id));
     };
     if (!userInfo) {

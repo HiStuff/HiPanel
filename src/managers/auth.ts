@@ -7,62 +7,60 @@ import cookieParser from "cookie-parser";
 import * as log from "../utils/logger.js";
 import { prisma } from "../app.js";
 import bcrypt from "bcrypt";
+import session from "express-session";
 
 export const authRouter = express.Router();
 authRouter.use(bodyparser.urlencoded({ extended: true }));
+authRouter.use(session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}))
 authRouter.use(cookieParser());
 
 const saltRounds = 10;
 
-function generateJWT(id: number, email: string, username: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        if (!process.env.JWT_SECRET) {
-            throw new Error("No JWT_SECRET enviroment variable.");
-        }
-        jwt.sign({ data: {
-            id: id,
-            email: email,
-            username: username,
-            permissionLevel: 1
-        } }, process.env.JWT_SECRET, { expiresIn: "7d" }, ((err, token) => {
-            if (err || !token) {
-                throw err;
-            }
-            resolve(token)
-        }));
-    })
+interface User {
+    id: Number,
+    createdAt: Date,
+    email: string,
+    username: string,
+    admin: boolean,
+}
+
+declare module 'express-session' {
+    interface SessionData {
+        user: User;
+    }
+}
+
+function generateUserJSON(id: number, createdAt: Date, email: string, username: string, admin: boolean = false) {
+    return {
+        id: id,
+        createdAt: createdAt,
+        email: email,
+        username: username,
+        admin: admin
+    }
 }
 
 export function checkAuth(req: Request, res: Response, next: NextFunction) {
-    if (!process.env.JWT_SECRET) {
-        throw new Error("No JWT_SECRET enviroment variable.");
-    }
-    const token = req.cookies.token;
-    if (!token) { res.redirect("/authorize"); return; }
-    jwt.verify(token, process.env.JWT_SECRET, ((err: any, decoded: any) => {
-        if (err) {
-            res.redirect("/authorize");
-            return;
-        }
+    if (req.session.user) {
         next();
-    }));
+    } else {
+        res.redirect("/authorize");
+    }
 }
 
 export function checkAdminAuth(req: Request, res: Response, next: NextFunction) {
-    if (!process.env.JWT_SECRET) {
-        throw new Error("No JWT_SECRET enviroment variable.");
-    }
-    const token = req.cookies.token;
-    if (!token) { res.redirect("/authorize"); return; }
-    jwt.verify(token, process.env.JWT_SECRET, ((err: any, decoded: any) => {
-        if (err || decoded.permissionLevel < 2) {
-            res.redirect("/");
-            return;
-        }
+    if (!req.session.user) return res.redirect("/authorize");
+    if (req.session.user.admin) {
         next();
-    }));
+    } else {
+        res.redirect("/authorize");
+    }
 }
-
 
 // RENDER
 
@@ -100,8 +98,8 @@ authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
             throw err;
         }
         if (result) {
-            const token = await generateJWT(user.id, user.email, user.username);
-            res.render("dashboard", { "panel_title": config.panel_title, token: token, other: {} });
+            req.session.user = generateUserJSON(user.id, user.createdAt, user.email, user.username, user.admin);
+            res.render("dashboard", { "panel_title": config.panel_title, other: {} });
         } else {
             return res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
         }
@@ -129,8 +127,8 @@ authRouter.post("/auth/jwt_register", (req: Request, res: Response) => {
                     hashedPassword: hash
                 }
             });
-            const token = await generateJWT(user.id, email, username);
-            res.render("dashboard", { "panel_title": config.panel_title, token: token, other: {} });
+            req.session.user = generateUserJSON(user.id, user.createdAt, user.email, user.username, user.admin);
+            res.render("dashboard", { "panel_title": config.panel_title, other: {} });
             log.success(`User with ID ${user.id} got registered!`);
         } else {
             return res.render("jwt_register", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>User already exists.<p></div>' });

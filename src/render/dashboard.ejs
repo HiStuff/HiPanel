@@ -23,23 +23,11 @@
 
     // USER AVATAR
     const user_avatar = document.querySelector("#user-avatar");
-    fetch("/api/user/me", {
-        headers: {
-            "Authorization": getCookie("token")
-        }
-    }).then((res) => res.json()).then(async data => {
+    fetch("/api/user/me").then((res) => res.json()).then(async data => {
         const address = data.email.trim().toLowerCase();
         const hash = await sha256(address);
         user_avatar.setAttribute("src", `https://www.gravatar.com/avatar/${ hash }`);
     });
-
-    let token = "<%= token %>";
-    if (token) {
-        setCookie("token", token, 7);
-        document.location = "/";
-    } else {
-        token = getCookie("token");
-    }
 
     // TABS
     const container = document.querySelector("#container");

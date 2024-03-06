@@ -9,7 +9,7 @@ model User {
   createdAt       DateTime @default(now())
   email           String   @unique
   username        String   @unique
-  permissionLevel Int      @default(1)
+  admin           Boolean  @default(false)
   hashedPassword  String
 }
 
