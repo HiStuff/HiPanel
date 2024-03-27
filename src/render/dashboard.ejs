@@ -22,24 +22,6 @@ YELLOW: #fff700
     <div id="container" class="m-8 sm:ml-72 sm:mr-8 sm:mt-24"></div>
 </body>
 <script>
-
-    // DROPDOWN
-    const dropdown = document.querySelector("#dropdown");
-    const dropdown_open = document.querySelector("#dropdown-open-btn");
-    let state = false;
-    dropdown_open.addEventListener("click", (e => {
-        state = !state;
-        dropdown.hidden = !state;
-    }));
-
-    // USER AVATAR
-    const user_avatar = document.querySelector("#user-avatar");
-    fetch("/api/user/me").then((res) => res.json()).then(async data => {
-        const address = data.email.trim().toLowerCase();
-        const hash = await sha256(address);
-        user_avatar.setAttribute("src", `https://www.gravatar.com/avatar/${ hash }`);
-    });
-
     // TABS
     const container = document.querySelector("#container");
     async function switchTab(tName) {

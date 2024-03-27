@@ -2,6 +2,25 @@
     <div class="text-center mb-3">
         <h1 class="p-2 text-2xl"><%= panel_title %></h1>
     </div>
+    <div class="fixed top-2 right-2 sm:hidden">
+        <div class="items-center">
+            <div>
+                <button id="sb-dropdown-open-btn">
+                    <img id="sb-user-avatar" src="https://www.gravatar.com/avatar/" loading="lazy" class="w-12 h-12 rounded-full flex justify-center">
+                </button>
+                <div class="bg-[#151617] p-2 absolute z-1 rounded-xl mt-2 right-2 w-48" id="sb-dropdown" hidden>
+                    <button onclick="logout()" class="block p-2 hover:bg-[#ff0000] w-full rounded-md pt-1 text-left font-medium">
+                        <span class="material-symbols-outlined align-middle mr-1">logout</span>
+                        <span class="align-middle">Logout</span>
+                    </button>
+                    <button onclick="switchTab('delete_account')" class="block p-2 hover:bg-[#ff0000] w-full rounded-md pt-1 text-left font-medium">
+                        <span class="material-symbols-outlined align-middle mr-1">delete</span>
+                        <span class="align-middle">Delete Account</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <button class="block p-2 hover:bg-[#26282b] w-full rounded-md mb-1 pt-1 text-left font-medium" onclick="switchAdminTab('manage_accounts')">
         <span class="material-symbols-outlined align-middle mr-1">manage_accounts</span>
         <span class="align-middle">Manage Accounts</span>
