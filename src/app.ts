@@ -27,11 +27,11 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     res.status(500).send('An error occured while trying to handle your request.');
 });
 
-app.get("/", checkAuth, (req, res) => {
+app.get("/", checkAuth, (req: Request, res: Response) => {
     res.render("dashboard", { "panel_title": config.panel_title, "token": "", other: {} });
 });
 
-app.get("/tab/:tab", checkAuth, (req, res) => {
+app.get("/tab/:tab", checkAuth, (req: Request, res: Response) => {
     const { tab } = req.params;
     if (tab && fs.existsSync(path.join(__dirname, `/render/tabs/${tab}.ejs`))) {
         res.render(`tabs/${tab.toString()}`);
@@ -40,11 +40,11 @@ app.get("/tab/:tab", checkAuth, (req, res) => {
     }
 });
 
-app.get("/admin", checkAdminAuth, (req, res) => {
+app.get("/admin", checkAdminAuth, (req: Request, res: Response) => {
     res.render("dashboard", { "panel_title": config.panel_title, "token": "", other: { admin: "true" } });
 });
 
-app.get("/tab/admin/:tab", checkAdminAuth, (req, res) => {
+app.get("/tab/admin/:tab", checkAdminAuth, (req: Request, res: Response) => {
     const { tab } = req.params;
     if (tab && fs.existsSync(path.join(__dirname, `/render/tabs/admin/${tab}.ejs`))) {
         res.render(`tabs/admin/${tab.toString()}`);

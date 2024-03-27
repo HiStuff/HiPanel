@@ -6,11 +6,7 @@
     const username = document.querySelector("#username");
     const email = document.querySelector("#email");
     const createdAt = document.querySelector("#createdAt");
-    fetch("/api/user/me", {
-        headers: {
-            "Authorization": getCookie("token")
-        }
-    }).then((res) => res.json()).then(data => {
+    fetch("/api/user/me").then((res) => res.json()).then(data => {
         username.textContent = data.username;
         email.textContent = data.email;
         createdAt.textContent = new Date(data.createdAt).toLocaleString();

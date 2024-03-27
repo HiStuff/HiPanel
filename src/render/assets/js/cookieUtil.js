@@ -15,6 +15,5 @@ function setCookie(cName, cValue, expDays) {
     document.cookie = cName + "=" + cValue + "; " + expires + "; path=/";
 }
 function logout() {
-    setCookie("token", null, 0);
-    document.location = "/";
+    document.location = "/logout";
 }

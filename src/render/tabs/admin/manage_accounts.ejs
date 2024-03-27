@@ -1,32 +1,54 @@
-<table class="auto">
+<table class="border-collapse auto bg-[#151617] outline outline-1 outline-[#26282b] rounded-xl outline-offset-0">
     <thead>
-        <tr>
-            <th>ID</th>
-            <th>E-Mail</th>
-            <th>Username</th>
-            <th>Action</th>
+        <tr class="border-b border-[#26282b]">
+            <th class="p-3">ID</th>
+            <th class="p-3">E-Mail</th>
+            <th class="p-3">Username</th>
+            <th class="p-3">Created on</th>
+            <th class="p-3">Action</th>
         </tr>
     </thead>
-    <tbody class="table">
-        <tr>
-            <td>1</td>
-            <td>test@histuff.dev</td>
-            <td>test</td>
-            <td><button>delete</button></td>
-        </tr>
+    <tbody id="users-tbody">
+        
     </tbody>
 </table>
 <script>
-    const table = document.querySelector("#table");
-    function createTableRow(id, email, username, created_on) {
+    const users_tbody = document.querySelector("#users-tbody");
+    function createTableRow(id, email, username, created_on, last) {
         const tr = document.createElement("tr");
         const id_el = document.createElement("td");
         const email_el = document.createElement("td"); 
         const username_el = document.createElement("td"); 
-        const created_on_el = document.createElement("td"); 
+        const created_on_el = document.createElement("td");
+        const action_delete_el1 = document.createElement("td");
+        const action_delete_el2 = document.createElement("button");
+        const action_delete_el3 = document.createElement("span");
+        const action_delete_el4 = document.createElement("span");
         id_el.textContent = id;
         email_el.textContent = email;
         username_el.textContent = username;
         created_on_el.textContent = created_on;
+        action_delete_el3.textContent = "delete";
+        action_delete_el4.textContent = "Delete";
+        id_el.classList.add("p-3");
+        email_el.classList.add("p-3");
+        username_el.classList.add("p-3");
+        created_on_el.classList.add("p-3");
+        action_delete_el1.classList.add("p-3");
+        action_delete_el2.classList.add("block p-2 bg-[#ff0000] w-full rounded-md pt-1 text-left font-medium");
+        action_delete_el3.classList.add("material-symbols-outlined align-middle mr-1");
+        action_delete_el4.classList.add("align-middle");
+        if (last) {
+            tr.classList.add("border-b border-[#26282b]");
+        }
+        tr.appendChild(id_el);
+        tr.appendChild(email_el);
+        tr.appendChild(username_el);
+        tr.appendChild(created_on_el);
+        action_delete_el2.appendChild(action_delete_el3);
+        action_delete_el2.appendChild(action_delete_el4);
+        action_delete_el1.appendChild(action_delete_el2);
+        tr.appendChild(action_delete_el1);
+        users_tbody.appendChild(tr);
     }
 </script>

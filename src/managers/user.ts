@@ -43,9 +43,8 @@ userRouter.get("/api/user/:id", async (req: Request, res: Response) => {
     let userInfo;
     if (id == "me") {
         // ME
-        // id = user.id
-        // userInfo = await getUserInfo(Number(id));
-        userInfo = user;
+        id = user.id.toString();
+        userInfo = await getUserInfo(Number(id));
     } else {
         // OTHER
         if (!user.admin) return res.status(403);

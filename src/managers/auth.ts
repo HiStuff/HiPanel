@@ -31,20 +31,12 @@ interface User {
 
 declare module 'express-session' {
     interface SessionData {
-        user: User;
+        user: {
+            id: Number
+            admin: Boolean
+        }
     }
 }
-
-function generateUserJSON(id: number, createdAt: Date, email: string, username: string, admin: boolean = false) {
-    return {
-        id: id,
-        createdAt: createdAt,
-        email: email,
-        username: username,
-        admin: admin
-    }
-}
-
 export function checkAuth(req: Request, res: Response, next: NextFunction) {
     if (req.session.user) {
         next();
@@ -58,7 +50,7 @@ export function checkAdminAuth(req: Request, res: Response, next: NextFunction) 
     if (req.session.user.admin) {
         next();
     } else {
-        res.redirect("/authorize");
+        res.redirect("/");
     }
 }
 
@@ -68,12 +60,12 @@ authRouter.get("/authorize", (req: Request, res: Response) => {
     res.render("authorize", { "panel_title": config.panel_title });
 });
 
-authRouter.get("/auth/jwt_login", (req: Request, res: Response) => {
-    res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": "" });
+authRouter.get("/auth/login", (req: Request, res: Response) => {
+    res.render("login", { "panel_title": config.panel_title, "additional_el": "" });
 });
 
-authRouter.get("/auth/jwt_register", (req: Request, res: Response) => {
-    res.render("jwt_register", { "panel_title": config.panel_title, "additional_el": "" });
+authRouter.get("/auth/register", (req: Request, res: Response) => {
+    res.render("register", { "panel_title": config.panel_title, "additional_el": "" });
 });
 
 authRouter.get("/auth/discord", (req: Request, res: Response) => {
@@ -82,7 +74,7 @@ authRouter.get("/auth/discord", (req: Request, res: Response) => {
 
 // POST
 
-authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
+authRouter.post("/auth/login", async (req: Request, res: Response) => {
     const username: string = req.body.username;
     const password: string = req.body.password;
     const user = await prisma.user.findUnique({
@@ -91,22 +83,22 @@ authRouter.post("/auth/jwt_login", async (req: Request, res: Response) => {
         }
     });
     if (!user) {
-        return res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
+        return res.render("login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
     }
     bcrypt.compare(password, user.hashedPassword, async (err, result) => {
         if (err) {
             throw err;
         }
         if (result) {
-            req.session.user = generateUserJSON(user.id, user.createdAt, user.email, user.username, user.admin);
+            req.session.user = { id: user.id, admin: user.admin };
             res.render("dashboard", { "panel_title": config.panel_title, other: {} });
         } else {
-            return res.render("jwt_login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
+            return res.render("login", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>Wrong credentials.<p></div>' });
         }
     });
 });
 
-authRouter.post("/auth/jwt_register", (req: Request, res: Response) => {
+authRouter.post("/auth/register", (req: Request, res: Response) => {
     const email: string = req.body.email;
     const username: string = req.body.username;
     const password: string = req.body.password;
@@ -127,15 +119,24 @@ authRouter.post("/auth/jwt_register", (req: Request, res: Response) => {
                     hashedPassword: hash
                 }
             });
-            req.session.user = generateUserJSON(user.id, user.createdAt, user.email, user.username, user.admin);
+            req.session.user = { id: user.id, admin: user.admin };
             res.render("dashboard", { "panel_title": config.panel_title, other: {} });
             log.success(`User with ID ${user.id} got registered!`);
         } else {
-            return res.render("jwt_register", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>User already exists.<p></div>' });
+            return res.render("register", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>User already exists.<p></div>' });
         }
     });
 });
 
 authRouter.post("/auth/discord", (req: Request, res: Response) => {
     res.status(501).send("Not implemented.");
+});
+
+authRouter.post("/logout", (req: Request, res: Response) => {
+    req.session.destroy((err: Error) => {
+        if (err) {
+            throw err;
+        }
+        res.redirect("/");
+    });
 });
