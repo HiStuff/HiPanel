@@ -10,6 +10,14 @@ export const userRouter = express.Router();
 userRouter.use(bodyparser.json());
 userRouter.use(cookieParser());
 
+interface User {
+    id: Number,
+    createdAt: Date,
+    email: string,
+    username: string,
+    admin: boolean,
+}
+
 export async function getUserInfo(id: number): Promise<any> {
     return new Promise((resolve, reject) => {
         prisma.user.findUnique({
@@ -29,6 +37,21 @@ export async function getUsersInfo(): Promise<any> {
         }).catch(err => reject(err));
     })
 }
+
+export async function grantAdmin(id: number): Promise<any> {
+    return new Promise((resolve, reject) => {
+        prisma.user.update({
+            where: {
+                id: id
+            },
+            data: {
+                admin: true
+            }
+        }).then((user) => {
+            resolve(user);
+        }).catch(err => reject(err));
+    });
+};
 
 export async function deleteUser(id: number): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -92,5 +115,21 @@ userRouter.delete("/api/user/:id", async (req: Request, res: Response) => {
         return res.status(404).json({ message: "User doesn't exist." });
     }
     log.success(`User with ID ${id} got deleted!`, "user.ts");
+    res.json(userInfo);
+});
+
+// POST
+
+userRouter.post("/api/user/:id/admin", async (req: Request, res: Response) => {
+    let id = req.params.id;
+    const user = req.session.user;
+    if (!user) return res.status(401);
+    if (!user.admin) return res.status(403).json({ message: "Permission Level too low." });
+    const userInfo = await getUserInfo(Number(id));
+    if (!userInfo) {
+        return res.status(404).json({ message: "User doesn't exist." });
+    }
+    await grantAdmin(userInfo.id);
+    log.success(`Granted admin for user with ID ${id}!`, "user.ts");
     res.json(userInfo);
 });

@@ -4,8 +4,9 @@
             <th class="p-3">ID</th>
             <th class="p-3">E-Mail</th>
             <th class="p-3">Username</th>
+            <th class="p-3">Admin</th>
             <th class="p-3">Created on</th>
-            <th class="p-3">Action</th>
+            <th class="p-3">Action (Triple click)</th>
         </tr>
     </thead>
     <tbody id="users-tbody">
@@ -13,49 +14,87 @@
     </tbody>
 </table>
 <script>
+    let confirm_count = {
+        delete: 0,
+        grant_admin: 0
+    }
     const users_tbody = document.querySelector("#users-tbody");
-    function createTableRow(id, email, username, created_at, last) {
+    function createTableRow(id, email, username, admin, created_at, last) {
         const tr = document.createElement("tr");
         const id_el = document.createElement("td");
-        const email_el = document.createElement("td"); 
-        const username_el = document.createElement("td"); 
+        const email_el = document.createElement("td");
+        const username_el = document.createElement("td");
+        const admin_el = document.createElement("td");
         const created_at_el = document.createElement("td");
         const action_delete_el1 = document.createElement("td");
         const action_delete_el2 = document.createElement("button");
         const action_delete_el3 = document.createElement("span");
         const action_delete_el4 = document.createElement("span");
+        const grant_admin_el1 = document.createElement("td");
+        const grant_admin_el2 = document.createElement("button");
+        const grant_admin_el3 = document.createElement("span");
+        const grant_admin_el4 = document.createElement("span");
         id_el.textContent = id;
         email_el.textContent = email;
         username_el.textContent = username;
+        admin_el.textContent = admin ;
         created_at_el.textContent = created_at;
         action_delete_el3.textContent = "delete";
         action_delete_el4.textContent = "Delete";
+        grant_admin_el3.textContent = "warning";
+        grant_admin_el4.textContent = "Grant Admin (UNREVERSIBLE)";
         id_el.classList.add("p-3");
         email_el.classList.add("p-3");
         username_el.classList.add("p-3");
+        admin_el.classList.add("p-3");
         created_at_el.classList.add("p-3");
         action_delete_el1.classList.add("p-3");
         action_delete_el2.classList.add("block", "p-2", "bg-[#ff0000]", "w-full", "rounded-md", "pt-1", "text-left", "font-medium");
         action_delete_el3.classList.add("material-symbols-outlined", "align-middle", "mr-1");
         action_delete_el4.classList.add("align-middle");
+        grant_admin_el1.classList.add("p-3");
+        grant_admin_el2.classList.add("block", "p-2", "bg-[#ff0000]", "w-full", "rounded-md", "pt-1", "text-left", "font-medium");
+        grant_admin_el3.classList.add("material-symbols-outlined", "align-middle", "mr-1");
+        grant_admin_el4.classList.add("align-middle");
         if (!last) {
             tr.classList.add("border-b", "border-[#26282b]");
         }
         action_delete_el2.addEventListener("click", (e) => {
-            console.log(`Deleting account with ID ${id}...`);
-            fetch(`/api/user/${id}`, {
-                method: "DELETE"
-            }).then((res) => res.json()).then(async data => {
-                location.reload();
-            });
+            confirm_count.grant_admin++;
+            if (confirm_count.delete > 2) {
+                console.log(`Deleting account with ID ${id}...`);
+                fetch(`/api/user/${id}`, {
+                    method: "DELETE"
+                }).then((res) => res.json()).then(async data => {
+                    location.reload();
+                });
+                confirm_count.delete = 0;
+            }
+        });
+        grant_admin_el2.addEventListener("click", (e) => {
+            confirm_count.grant_admin++;
+            if (confirm_count.grant_admin > 2) {
+                console.log(`Grating admin to account with ID ${id}...`);
+                fetch(`/api/user/${id}/admin`, {
+                    method: "POST"
+                }).then((res) => res.json()).then(async data => {
+                    location.reload();
+                });
+                confirm_count.grant_admin = 0;
+            }
         });
         tr.appendChild(id_el);
         tr.appendChild(email_el);
         tr.appendChild(username_el);
+        tr.appendChild(admin_el);
         tr.appendChild(created_at_el);
         action_delete_el2.appendChild(action_delete_el3);
         action_delete_el2.appendChild(action_delete_el4);
         action_delete_el1.appendChild(action_delete_el2);
+        grant_admin_el2.appendChild(grant_admin_el3);
+        grant_admin_el2.appendChild(grant_admin_el4);
+        grant_admin_el1.appendChild(grant_admin_el2);
+        tr.appendChild(grant_admin_el1);
         tr.appendChild(action_delete_el1);
         users_tbody.appendChild(tr);
     }
@@ -64,7 +103,7 @@
             const account = users[i];
             let last = false;
             if (i == users.length - 1) last = true;
-            createTableRow(account.id, account.email, account.username, (new Date(account.createdAt)).toLocaleString(), last);
+            createTableRow(account.id, account.email, account.username, account.admin, (new Date(account.createdAt)).toLocaleString(), last);
         }
     }
     fetch("/api/users", {

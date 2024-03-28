@@ -21,14 +21,6 @@ authRouter.use(cookieParser());
 
 const saltRounds = 10;
 
-interface User {
-    id: Number,
-    createdAt: Date,
-    email: string,
-    username: string,
-    admin: boolean,
-}
-
 declare module 'express-session' {
     interface SessionData {
         user: {
