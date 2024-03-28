@@ -121,7 +121,7 @@ authRouter.post("/auth/register", (req: Request, res: Response) => {
             });
             req.session.user = { id: user.id, admin: user.admin };
             res.render("dashboard", { "panel_title": config.panel_title, other: {} });
-            log.success(`User with ID ${user.id} got registered!`);
+            log.success(`User with ID ${user.id} got registered!`, "auth.ts");
         } else {
             return res.render("register", { "panel_title": config.panel_title, "additional_el": '<div class="bg-[#ff0000] p-2 mb-3 rounded-lg"><p>User already exists.<p></div>' });
         }
@@ -132,7 +132,7 @@ authRouter.post("/auth/discord", (req: Request, res: Response) => {
     res.status(501).send("Not implemented.");
 });
 
-authRouter.post("/logout", (req: Request, res: Response) => {
+authRouter.get("/logout", (req: Request, res: Response) => {
     req.session.destroy((err: Error) => {
         if (err) {
             throw err;

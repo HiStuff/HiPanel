@@ -9,10 +9,7 @@
         e.preventDefault();
         if (document.querySelector("#confirm_input").value == "I am sure.") {
             fetch("/api/user/me", {
-                method: "DELETE",
-                headers: {
-                    "Authorization": getCookie("token")
-                }
+                method: "DELETE"
             }).then((res) => res.json()).then(async data => {
                 logout();
             });

@@ -19,6 +19,14 @@ export async function getUserInfo(id: number): Promise<any> {
         }).then((user) => {
             resolve(user);
         }).catch(err => reject(err));
+    });
+}
+
+export async function getUsersInfo(): Promise<any> {
+    return new Promise((resolve, reject) => {
+        prisma.user.findMany().then((users) => {
+            resolve(users);
+        }).catch(err => reject(err));
     })
 }
 
@@ -31,7 +39,7 @@ export async function deleteUser(id: number): Promise<any> {
         }).then((user) => {
             resolve(user);
         }).catch(err => reject(err));
-    })
+    });
 }
 
 // GET
@@ -56,6 +64,14 @@ userRouter.get("/api/user/:id", async (req: Request, res: Response) => {
     res.json(userInfo);
 });
 
+userRouter.get("/api/users", async (req: Request, res: Response) => {
+    const user = req.session.user;
+    if (!user) return res.status(401);
+    if (!user.admin) return res.status(403);
+    const usersInfo = await getUsersInfo();
+    res.json(usersInfo);
+});
+
 // DELETE
 
 userRouter.delete("/api/user/:id", async (req: Request, res: Response) => {
@@ -75,6 +91,6 @@ userRouter.delete("/api/user/:id", async (req: Request, res: Response) => {
     if (!userInfo) {
         return res.status(404).json({ message: "User doesn't exist." });
     }
-    log.success(`User with ID ${id} got deleted!`);
+    log.success(`User with ID ${id} got deleted!`, "user.ts");
     res.json(userInfo);
 });

@@ -14,12 +14,12 @@
 </table>
 <script>
     const users_tbody = document.querySelector("#users-tbody");
-    function createTableRow(id, email, username, created_on, last) {
+    function createTableRow(id, email, username, created_at, last) {
         const tr = document.createElement("tr");
         const id_el = document.createElement("td");
         const email_el = document.createElement("td"); 
         const username_el = document.createElement("td"); 
-        const created_on_el = document.createElement("td");
+        const created_at_el = document.createElement("td");
         const action_delete_el1 = document.createElement("td");
         const action_delete_el2 = document.createElement("button");
         const action_delete_el3 = document.createElement("span");
@@ -27,13 +27,13 @@
         id_el.textContent = id;
         email_el.textContent = email;
         username_el.textContent = username;
-        created_on_el.textContent = created_on;
+        created_at_el.textContent = created_at;
         action_delete_el3.textContent = "delete";
         action_delete_el4.textContent = "Delete";
         id_el.classList.add("p-3");
         email_el.classList.add("p-3");
         username_el.classList.add("p-3");
-        created_on_el.classList.add("p-3");
+        created_at_el.classList.add("p-3");
         action_delete_el1.classList.add("p-3");
         action_delete_el2.classList.add("block", "p-2", "bg-[#ff0000]", "w-full", "rounded-md", "pt-1", "text-left", "font-medium");
         action_delete_el3.classList.add("material-symbols-outlined", "align-middle", "mr-1");
@@ -43,39 +43,33 @@
         }
         action_delete_el2.addEventListener("click", (e) => {
             console.log(`Deleting account with ID ${id}...`);
+            fetch(`/api/user/${id}`, {
+                method: "DELETE"
+            }).then((res) => res.json()).then(async data => {
+                location.reload();
+            });
         });
         tr.appendChild(id_el);
         tr.appendChild(email_el);
         tr.appendChild(username_el);
-        tr.appendChild(created_on_el);
+        tr.appendChild(created_at_el);
         action_delete_el2.appendChild(action_delete_el3);
         action_delete_el2.appendChild(action_delete_el4);
         action_delete_el1.appendChild(action_delete_el2);
         tr.appendChild(action_delete_el1);
         users_tbody.appendChild(tr);
     }
-    const dummy = [
-        {
-            id: 1,
-            email: "teletvibs@gmail.com",
-            username: "teletvibs",
-            created_on: "filler"
-        },
-        {
-            id: 2,
-            email: "teletvibsxdddd@gmail.com",
-            username: "nahsdgdfg",
-            created_on: "filler"
-        }
-    ]
-    function createTabRows() {
-        for (let i = 0; i < dummy.length; i++) {
-            const account = dummy[i];
+    function createTabRows(users) {
+        for (let i = 0; i < users.length; i++) {
+            const account = users[i];
             let last = false;
-            if (i == dummy.length - 1) last = true;
-            console.log(last)
-            createTableRow(account.id, account.email, account.username, account.created_on, last);
+            if (i == users.length - 1) last = true;
+            createTableRow(account.id, account.email, account.username, (new Date(account.createdAt)).toLocaleString(), last);
         }
     }
-    createTabRows();
+    fetch("/api/users", {
+        method: "GET"
+    }).then((res) => res.json()).then((data) => {
+        createTabRows(data);
+    });
 </script>
