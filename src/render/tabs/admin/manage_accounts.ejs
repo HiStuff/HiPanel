@@ -41,6 +41,9 @@
         if (!last) {
             tr.classList.add("border-b", "border-[#26282b]");
         }
+        action_delete_el2.addEventListener("click", (e) => {
+            console.log(`Deleting account with ID ${id}...`);
+        });
         tr.appendChild(id_el);
         tr.appendChild(email_el);
         tr.appendChild(username_el);
